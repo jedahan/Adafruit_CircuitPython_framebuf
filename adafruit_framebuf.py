@@ -36,7 +36,47 @@ RGB565 = 1  # 16-bit color displays
 GS4_HMSB = 2  # Unimplemented!
 MHMSB = 3  # Single bit displays like the Sharp Memory
 RGB888 = 4  # Neopixels and Dotstars
+BICOLOR = 5 # Two color displays like the ht16k33
 
+class BICOLORFormat:
+    """BICOLORFormat"""
+
+    @staticmethod
+    def set_pixel(framebuf, x, y, color):
+        """Set a given pixel to a color."""
+        index = (y * framebuf.stride + x) // 8
+        offset = 7 - x & 0x07
+        framebuf.buf[index] = (framebuf.buf[index] & ~(0x11 << offset)) | ((color != 0) << offset)
+
+    @staticmethod
+    def get_pixel(framebuf, x, y):
+        """Get the color of a given pixel"""
+        index = (y * framebuf.stride + x) // 8
+        offset = 7 - x & 0x07
+        return (framebuf.buf[index] >> offset) & 0x11
+
+    @staticmethod
+    def fill(framebuf, color):
+        """completely fill/clear the buffer with a color"""
+        if color:
+            fill = color & 0x11
+        else:
+            fill = 0x00
+        for i in range(len(framebuf.buf)):  # pylint: disable=consider-using-enumerate
+            framebuf.buf[i] = fill
+
+    @staticmethod
+    def fill_rect(framebuf, x, y, width, height, color):
+        """Draw a rectangle at the given location, size and color. The ``fill_rect`` method draws
+        both the outline and interior."""
+        # pylint: disable=too-many-arguments
+        for _x in range(x, x + width):
+            offset = 7 - _x & 0x07
+            for _y in range(y, y + height):
+                index = (_y * framebuf.stride + _x) // 8
+                framebuf.buf[index] = (framebuf.buf[index] & ~(0x11 << offset)) | (
+                    (color & 0x11) << offset
+                )
 
 class MHMSBFormat:
     """MHMSBFormat"""
@@ -256,6 +296,8 @@ class FrameBuffer:
             self.format = RGB888Format()
         elif buf_format == RGB565:
             self.format = RGB565Format()
+        elif buf_format == BICOLOR:
+            self.format = BICOLORFormat()
         else:
             raise ValueError("invalid format")
         self._rotation = 0
