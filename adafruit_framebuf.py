@@ -73,7 +73,7 @@ class GS2HMSBFormat:
         else:
             fill = 0x00
         for i in range(len(framebuf.buf)):  # pylint: disable=consider-using-enumerate
-            framebuf.buf[i] = fill
+            framebuf.buf[i] = bytes(fill)
 
     @staticmethod
     def rect(framebuf, x, y, width, height, color):
