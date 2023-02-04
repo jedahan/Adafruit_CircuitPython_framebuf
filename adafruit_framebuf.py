@@ -16,6 +16,7 @@ Implementation Notes
 **Hardware:**
 
 * `Adafruit SSD1306 OLED displays <https://www.adafruit.com/?q=ssd1306>`_
+* `Adafruit HT16K33 Matrix displays <https://www.adafruit.com/?q=ht16k33>`_
 
 **Software and Dependencies:**
 
@@ -36,7 +37,7 @@ RGB565 = 1  # 16-bit color displays
 GS4_HMSB = 2  # Unimplemented!
 MHMSB = 3  # Single bit displays like the Sharp Memory
 RGB888 = 4  # Neopixels and Dotstars
-BICOLOR = 5 # Two color displays like the ht16k33
+BICOLOR = 5 # Two color displays like the HT16K33 8x8 Matrix
 
 class BICOLORFormat:
     """BICOLORFormat"""
@@ -52,7 +53,7 @@ class BICOLORFormat:
     def get_pixel(framebuf, x, y):
         """Get the color of a given pixel"""
         index = (y * framebuf.stride + x) // 8
-        offset = 7 - x & 0x07
+        offset = 7 - x & 0x77
         return (framebuf.buf[index] >> offset) & 0x11
 
     @staticmethod
@@ -71,7 +72,7 @@ class BICOLORFormat:
         both the outline and interior."""
         # pylint: disable=too-many-arguments
         for _x in range(x, x + width):
-            offset = 7 - _x & 0x07
+            offset = 7 - _x & 0x77
             for _y in range(y, y + height):
                 index = (_y * framebuf.stride + _x) // 8
                 framebuf.buf[index] = (framebuf.buf[index] & ~(0x11 << offset)) | (
