@@ -46,21 +46,21 @@ class BICOLORFormat:
     def set_pixel(framebuf, x, y, color):
         """Set a given pixel to a color."""
         index = (y * framebuf.stride + x) // 8
-        offset = 7 - x & 0x07
-        framebuf.buf[index] = (framebuf.buf[index] & ~(0x11 << offset)) | ((color != 0) << offset)
+        offset = 7 - x & 0b11
+        framebuf.buf[index] = (framebuf.buf[index] & ~(0b11 << offset)) | ((color != 0) << offset)
 
     @staticmethod
     def get_pixel(framebuf, x, y):
         """Get the color of a given pixel"""
         index = (y * framebuf.stride + x) // 8
-        offset = 7 - x & 0x77
-        return (framebuf.buf[index] >> offset) & 0x11
+        offset = 7 - x & 0b77
+        return (framebuf.buf[index] >> offset) & 0b11
 
     @staticmethod
     def fill(framebuf, color):
         """completely fill/clear the buffer with a color"""
         if color:
-            fill = color & 0x11
+            fill = color & 0b11
         else:
             fill = 0x00
         for i in range(len(framebuf.buf)):  # pylint: disable=consider-using-enumerate
@@ -72,11 +72,11 @@ class BICOLORFormat:
         both the outline and interior."""
         # pylint: disable=too-many-arguments
         for _x in range(x, x + width):
-            offset = 7 - _x & 0x77
+            offset = 7 - _x & 0b77
             for _y in range(y, y + height):
                 index = (_y * framebuf.stride + _x) // 8
-                framebuf.buf[index] = (framebuf.buf[index] & ~(0x11 << offset)) | (
-                    (color & 0x11) << offset
+                framebuf.buf[index] = (framebuf.buf[index] & ~(0b11 << offset)) | (
+                    (color & 0b11) << offset
                 )
 
 class MHMSBFormat:
