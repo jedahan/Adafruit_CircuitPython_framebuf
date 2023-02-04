@@ -80,14 +80,14 @@ class GS2HMSBFormat:
         for xx in range(x, x + width):
             for yy in range(y, y + height):
                 if xx in [x, x+width] or yy in [y, y+height]:
-                    setpixel(framebuffer, xx, yy, color)
+                    GS2HMSBFormat.setpixel(framebuffer, xx, yy, color)
 
     @staticmethod
     def fill_rect(framebuf, x, y, width, height, color):
         """Draw both the outline and interior of a rectangle at the given location, size and color."""
         for xx in range(x, x + width):
             for yy in range(y, y + height):
-                setpixel(framebuffer, xx, yy, color)
+                GS2HMSBFormat.setpixel(framebuffer, xx, yy, color)
 
 class MHMSBFormat:
     """MHMSBFormat"""
