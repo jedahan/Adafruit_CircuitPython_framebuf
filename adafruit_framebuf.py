@@ -37,24 +37,32 @@ RGB565 = 1  # 16-bit color displays
 GS4_HMSB = 2  # Unimplemented!
 MHMSB = 3  # Single bit displays like the Sharp Memory
 RGB888 = 4  # Neopixels and Dotstars
-BICOLOR = 5 # Two color displays like the HT16K33 8x8 Matrix
+GS2_HMSB = 5 # 2-bit color displays like the HT16K33 8x8 Matrix
 
-class BICOLORFormat:
-    """BICOLORFormat"""
+class GS2HMSBFormat:
+    """GS2HMSBFormat"""
+
 
     @staticmethod
     def set_pixel(framebuf, x, y, color):
         """Set a given pixel to a color."""
-        index = (y * framebuf.stride + x) // 8
-        offset = 7 - x & 0b11
-        framebuf.buf[index] = (framebuf.buf[index] & ~(0b11 << offset)) | ((color != 0) << offset)
+        index = (y * framebuf.stride + x) >> 2 # why 2?
+        pixel = framebuffer.buf[index]
+
+        shift = (x & 0b11) << 1 # why 1?
+        mask = 0b11 << shift
+        color = (color & 0b11) << shift
+
+        framebuf.buf[index] = color | (pixel & (~mask))
 
     @staticmethod
     def get_pixel(framebuf, x, y):
         """Get the color of a given pixel"""
-        index = (y * framebuf.stride + x) // 8
-        offset = 7 - x & 0b77
-        return (framebuf.buf[index] >> offset) & 0b11
+        index = (y * framebuf.stride + x) >> 2 # same as // 8? why?
+        pixel = framebuffer.buf[index]
+
+        shift = (x & 0b11) << 1 # why 1?
+        return (pixel >> shift) & 0b11
 
     @staticmethod
     def fill(framebuf, color):
@@ -67,17 +75,19 @@ class BICOLORFormat:
             framebuf.buf[i] = fill
 
     @staticmethod
+    def rect(framebuf, x, y, width, height, color):
+        """Draw the outline of a rectangle at the given location, size and color."""
+        for xx in range(x, x + width):
+            for yy in range(y, y + height):
+                if xx in [x, x+width] or yy in [y, y+height]:
+                    setpixel(framebuffer, xx, yy, color)
+
+    @staticmethod
     def fill_rect(framebuf, x, y, width, height, color):
-        """Draw a rectangle at the given location, size and color. The ``fill_rect`` method draws
-        both the outline and interior."""
-        # pylint: disable=too-many-arguments
-        for _x in range(x, x + width):
-            offset = 7 - _x & 0b77
-            for _y in range(y, y + height):
-                index = (_y * framebuf.stride + _x) // 8
-                framebuf.buf[index] = (framebuf.buf[index] & ~(0b11 << offset)) | (
-                    (color & 0b11) << offset
-                )
+        """Draw both the outline and interior of a rectangle at the given location, size and color."""
+        for xx in range(x, x + width):
+            for yy in range(y, y + height):
+                setpixel(framebuffer, xx, yy, color)
 
 class MHMSBFormat:
     """MHMSBFormat"""
@@ -297,8 +307,8 @@ class FrameBuffer:
             self.format = RGB888Format()
         elif buf_format == RGB565:
             self.format = RGB565Format()
-        elif buf_format == BICOLOR:
-            self.format = BICOLORFormat()
+        elif buf_format == GS2_HMSB:
+            self.format = GS2HMSBFormat()
         else:
             raise ValueError("invalid format")
         self._rotation = 0
